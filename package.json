@@ -1,0 +1,15 @@
+{
+  "name": "js-code-tests",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "JS interview prep tasks and exercises (strings/arrays/objects, etc.)",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "test": "node --test tasks",
+    "test:pack": "node --test"
+  }
+}
+
