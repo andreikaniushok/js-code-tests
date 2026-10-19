@@ -3,13 +3,25 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "JS interview prep tasks and exercises (strings/arrays/objects, etc.)",
+  "description": "JS interview prep tasks with a React trainer for tracking skills",
   "engines": {
     "node": ">=18.0.0"
   },
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "node --test tasks",
-    "test:pack": "node --test"
+    "test:app": "node scripts/verify-catalog.mjs"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "monaco-editor": "^0.55.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.0.4",
+    "vite": "^7.1.9"
   }
 }
-
