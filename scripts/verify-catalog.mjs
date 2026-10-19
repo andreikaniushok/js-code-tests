@@ -5,6 +5,9 @@ import { SECTIONS } from "../src/sections.js";
 import { assembleSection } from "../src/assemble.js";
 import { parseTests } from "../src/parse.js";
 import { runProgram } from "../src/runner/runProgram.js";
+import { SUMMARIES_RU } from "../src/i18n/summaries.ru.js";
+import { localizedStarter, taskText } from "../src/i18n/taskText.js";
+import { MESSAGES } from "../src/i18n/messages.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const failures = [];
@@ -34,6 +37,15 @@ for (const section of catalog) {
     if (names.has(task.name)) fail(`${section.id}: повтор ${task.name}`);
     names.add(task.name);
     if (!task.summary) fail(`${task.id}: пустое условие`);
+    if (!SUMMARIES_RU[task.id]) fail(`${task.id}: нет русского условия`);
+    const russian = taskText(task, "ru");
+    if (!russian.summary || !russian.input || !russian.output) fail(`${task.id}: неполный русский текст`);
+    if (taskText(task, "en").summary !== task.summary) fail(`${task.id}: английское условие изменилось`);
+    const ruStarter = localizedStarter(task, "ru");
+    if (!ruStarter.includes("Задача:") || !ruStarter.includes(SUMMARIES_RU[task.id])) {
+      fail(`${task.id}: русский JSDoc в каркасе не собран`);
+    }
+    if (localizedStarter(task, "en") !== task.starter) fail(`${task.id}: английский каркас изменился`);
     try {
       new Function(task.starter);
     } catch (error) {
@@ -201,10 +213,27 @@ const broken = await runProgram({
 });
 if (!broken.error) fail(`синтаксическая ошибка не поймана: ${JSON.stringify(broken)}`);
 
+for (const key of Object.keys(MESSAGES.ru)) {
+  if (!(key in MESSAGES.en)) fail(`нет английского ключа ${key}`);
+}
+for (const key of Object.keys(MESSAGES.en)) {
+  if (!(key in MESSAGES.ru)) fail(`нет русского ключа ${key}`);
+}
+
+const englishFail = await runProgram({
+  locale: "en",
+  prelude: "",
+  tests: [{ name: "eq", async: false, body: "assert.equal(1, 2);" }],
+  userCode: "",
+});
+const englishMessage = englishFail.results?.[0]?.error || "";
+if (!englishMessage.includes("expected")) fail(`английское сообщение проверки: ${englishMessage}`);
+
 if (failures.length) {
   console.error(`\n${failures.length} проблем`);
   process.exit(1);
 }
 
 const tested = catalog.reduce((sum, section) => sum + section.tasks.filter((item) => item.tests.length).length, 0);
+if (tested !== 310) fail(`ожидалось 310 задач с тестами, получено ${tested}`);
 console.log(`ok: ${total} задач, с тестами ${tested}`);

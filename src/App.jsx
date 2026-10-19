@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { catalog, findTask } from "./catalog.js";
-import { firstOpenTask, summarize, taskCode } from "./skills.js";
-import { emptyState, hashCode, loadState, saveState } from "./storage.js";
+import { codeFingerprint, firstOpenTask, isStarterCode, resultMatchesCode, summarize, taskCode } from "./skills.js";
+import { emptyState, loadState, saveState } from "./storage.js";
 import { runInWorker } from "./runner/client.js";
 import { prepareUserCode } from "./runner/runProgram.js";
 import { Sidebar } from "./components/Sidebar.jsx";
 import { Dashboard } from "./components/Dashboard.jsx";
 import { Workspace } from "./components/Workspace.jsx";
+import { useI18n } from "./i18n/LocaleContext.jsx";
 
 function parseHash(hash) {
   const parts = hash.replace(/^#/, "").split("/").filter(Boolean);
@@ -28,6 +29,7 @@ function buildHash(route) {
 }
 
 export function App() {
+  const { locale, t } = useI18n();
   const [state, setState] = useState(loadState);
   const [route, setRoute] = useState(() => parseHash(window.location.hash));
   const [query, setQuery] = useState("");
@@ -38,7 +40,7 @@ export function App() {
   const cancelRef = useRef(false);
   stateRef.current = state;
 
-  const summary = useMemo(() => summarize(catalog, state), [state]);
+  const summary = useMemo(() => summarize(catalog, state, locale), [state, locale]);
 
   useEffect(() => {
     const onHash = () => setRoute(parseHash(window.location.hash));
@@ -79,9 +81,8 @@ export function App() {
   }, [state.lastTaskId, summary.sections]);
 
   useEffect(() => {
-    if (located) document.title = `${located.task.name} — Полигон`;
-    else document.title = "Полигон — навыки JavaScript";
-  }, [located]);
+    document.title = located ? t("title.task", { name: located.task.name }) : t("title.app");
+  }, [located, t]);
 
   function commitResult(taskId, code, outcome) {
     const ok = Boolean(!outcome.error && !outcome.hung && outcome.results?.length && outcome.results.every((item) => item.ok));
@@ -91,7 +92,7 @@ export function App() {
         ...previous.results,
         [taskId]: {
           ok,
-          hash: hashCode(code),
+          hash: codeFingerprint(code),
           at: Date.now(),
           error: outcome.error || "",
           cases: outcome.results || [],
@@ -105,12 +106,13 @@ export function App() {
       prelude: section.prelude,
       tests: task.tests,
       userCode: prepareUserCode(code),
+      locale,
     });
   }
 
   async function runCurrent() {
     if (!located || runningId || !located.task.tests.length) return;
-    const code = taskCode(located.task, stateRef.current);
+    const code = taskCode(located.task, stateRef.current, locale);
     setRunningId(located.task.id);
     const outcome = await runTask(located.section, located.task, code);
     commitResult(located.task.id, code, outcome);
@@ -120,12 +122,12 @@ export function App() {
   async function runAll() {
     const tasks = catalog.flatMap((section) => section.tasks.filter((task) => task.tests.length).map((task) => ({ section, task })));
     cancelRef.current = false;
-    setBatch({ done: 0, total: tasks.length, label: "Старт", cancel: () => { cancelRef.current = true; } });
+    setBatch({ done: 0, total: tasks.length, label: t("batch.start"), cancel: () => { cancelRef.current = true; } });
     for (let index = 0; index < tasks.length; index += 1) {
       if (cancelRef.current) break;
       const { section, task } = tasks[index];
       setBatch({ done: index, total: tasks.length, label: task.name, cancel: () => { cancelRef.current = true; } });
-      const code = taskCode(task, stateRef.current);
+      const code = taskCode(task, stateRef.current, locale);
       const outcome = await runTask(section, task, code);
       commitResult(task.id, code, outcome);
     }
@@ -133,7 +135,7 @@ export function App() {
   }
 
   function resetAll() {
-    if (!window.confirm("Сбросить весь локальный прогресс и решения в этом браузере?")) return;
+    if (!window.confirm(t("confirm.resetAll"))) return;
     const next = emptyState();
     saveState(next);
     setState(next);
@@ -169,17 +171,17 @@ export function App() {
             section={activeSummarySection}
             task={located.task}
             status={activeSummaryTask.status}
-            code={taskCode(located.task, state)}
-            editorNonce={editorNonce}
-            result={viewResult(located.task, state)}
+            code={taskCode(located.task, state, locale)}
+            editorNonce={`${editorNonce}:${locale}`}
+            result={viewResult(located.task, state, locale)}
             running={runningId === located.task.id}
             manual={Boolean(state.manual[located.task.id])}
             onChangeCode={(code) => {
               const id = located.task.id;
-              const starter = located.task.starter;
+              const task = located.task;
               patch((previous) => {
                 const nextCode = { ...previous.code };
-                if (code === starter) delete nextCode[id];
+                if (isStarterCode(task, code)) delete nextCode[id];
                 else nextCode[id] = code;
                 return { ...previous, code: nextCode, lastTaskId: id };
               });
@@ -214,9 +216,9 @@ export function App() {
         ) : null}
         {route.name === "task" && !located ? (
           <div className="missing">
-            <h1>Задача не найдена</h1>
+            <h1>{t("missing.title")}</h1>
             <button type="button" className="btn primary" onClick={() => navigate({ name: "dashboard" })}>
-              К обзору
+              {t("missing.back")}
             </button>
           </div>
         ) : null}
@@ -225,10 +227,10 @@ export function App() {
   );
 }
 
-function viewResult(task, state) {
+function viewResult(task, state, locale) {
   const result = state.results[task.id];
   if (!result) return null;
-  return { ...result, stale: result.hash !== hashCode(taskCode(task, state)) };
+  return { ...result, stale: result.ok ? !resultMatchesCode(task, state, locale, result) : false };
 }
 
 function positionOf(section, taskName) {

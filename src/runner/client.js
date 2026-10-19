@@ -1,3 +1,5 @@
+import { runnerCopy } from "../i18n/runnerCopy.js";
+
 let worker = null;
 let sequence = 0;
 
@@ -7,6 +9,7 @@ function spawn() {
 }
 
 export function runInWorker(payload, timeoutMs = 15000) {
+  const copy = runnerCopy(payload?.locale);
   const id = ++sequence;
   const current = worker || spawn();
 
@@ -16,7 +19,7 @@ export function runInWorker(payload, timeoutMs = 15000) {
       worker = null;
       resolve({
         hung: true,
-        error: "Похоже, выполнение зависло. Проверьте циклы и ожидающие промисы.",
+        error: copy.hung,
         results: [],
       });
     }, timeoutMs);
@@ -34,7 +37,7 @@ export function runInWorker(payload, timeoutMs = 15000) {
     };
 
     const onError = (event) => {
-      finish({ error: event.message || "Сбой изолированного выполнения", results: [] });
+      finish({ error: event.message || copy.worker, results: [] });
     };
 
     current.addEventListener("message", onMessage);

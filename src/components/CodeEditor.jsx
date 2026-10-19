@@ -1,15 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import Editor from "@monaco-editor/react";
 import { editorOptions, monaco } from "../monacoSetup.js";
-
-function problemLabel(count) {
-  const mod10 = count % 10;
-  const mod100 = count % 100;
-  const word = mod10 === 1 && mod100 !== 11 ? "ошибка" : mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14) ? "ошибки" : "ошибок";
-  return `${count} ${word}`;
-}
+import { useI18n } from "../i18n/LocaleContext.jsx";
+import { problemCount } from "../i18n/messages.js";
 
 export function CodeEditor({ fileName, path, initialCode, onChange, onRun, running, canRun }) {
+  const { locale, t } = useI18n();
   const editorRef = useRef(null);
   const onRunRef = useRef(onRun);
   const [cursor, setCursor] = useState({ line: 1, column: 1 });
@@ -61,10 +57,10 @@ export function CodeEditor({ fileName, path, initialCode, onChange, onRun, runni
         </div>
         <div className="tab-actions">
           <button type="button" className="btn ghost" onClick={formatDocument}>
-            Форматировать
+            {t("editor.format")}
           </button>
           <button type="button" className="btn primary" onClick={onRun} disabled={!canRun || running}>
-            {running ? "Проверка…" : canRun ? "Проверить" : "Нет тестов"}
+            {running ? t("editor.running") : canRun ? t("editor.run") : t("editor.noTests")}
             {canRun ? <kbd>Ctrl+Enter</kbd> : null}
           </button>
         </div>
@@ -76,7 +72,7 @@ export function CodeEditor({ fileName, path, initialCode, onChange, onRun, runni
           defaultValue={initialCode}
           theme="polygon"
           options={editorOptions}
-          loading={<div className="editor-loading">Загрузка редактора…</div>}
+          loading={<div className="editor-loading">{t("editor.loading")}</div>}
           onMount={handleMount}
           onChange={(value) => {
             if (typeof value === "string") onChange(value);
@@ -86,12 +82,12 @@ export function CodeEditor({ fileName, path, initialCode, onChange, onRun, runni
       </div>
       <div className="statusbar">
         <span>
-          Стр. {cursor.line}, кол. {cursor.column}
+          {t("editor.cursor", { line: cursor.line, column: cursor.column })}
         </span>
-        <span>Пробелы: 2</span>
+        <span>{t("editor.spaces")}</span>
         <span>UTF-8</span>
-        <span>{problems ? problemLabel(problems) : "ошибок нет"}</span>
-        <span className="status-grow">{saved ? "Сохранено в браузере" : "Сохранение…"}</span>
+        <span>{problems ? problemCount(locale, problems) : t("editor.clean")}</span>
+        <span className="status-grow">{saved ? t("editor.saved") : t("editor.saving")}</span>
         <span>JavaScript</span>
       </div>
     </section>

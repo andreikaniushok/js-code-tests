@@ -1,9 +1,9 @@
 import { runProgram } from "./runProgram.js";
 
 self.onmessage = async (event) => {
-  const { id, prelude, tests, userCode } = event.data;
+  const { id, prelude, tests, userCode, locale } = event.data;
   try {
-    const outcome = await runProgram({ prelude, tests, userCode });
+    const outcome = await runProgram({ prelude, tests, userCode, locale });
     self.postMessage({ id, ...outcome });
   } catch (error) {
     self.postMessage({

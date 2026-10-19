@@ -1,4 +1,5 @@
 import { createAssert } from "./assert.js";
+import { runnerCopy } from "../i18n/runnerCopy.js";
 
 export function prepareUserCode(code) {
   return String(code || "")
@@ -8,8 +9,8 @@ export function prepareUserCode(code) {
     .replace(/^\s*export\s+(const|let|var|class)\b/gm, "$1");
 }
 
-function formatError(error) {
-  if (!error) return "Неизвестная ошибка";
+function formatError(error, copy) {
+  if (!error) return copy.unknown;
   const name = error.name || "Error";
   const message = error.message || String(error);
   return name === "AssertionError" ? message : `${name}: ${message}`;
@@ -31,7 +32,8 @@ function formatLog(args) {
     .join(" ");
 }
 
-export async function runProgram({ prelude = "", tests = [], userCode = "" }) {
+export async function runProgram({ prelude = "", tests = [], userCode = "", locale = "ru" }) {
+  const copy = runnerCopy(locale);
   const logs = [];
   const pieces = [
     "'use strict';",
@@ -56,14 +58,14 @@ export async function runProgram({ prelude = "", tests = [], userCode = "" }) {
   try {
     factory = new AsyncFunction("assert", "register", "logs", source);
   } catch (error) {
-    return { error: `Синтаксическая ошибка: ${error.message}`, results: [] };
+    return { error: copy.syntax(error.message), results: [] };
   }
 
   const bucket = [];
   try {
-    await factory(createAssert(), (name, fn) => bucket.push({ name, fn }), logs);
+    await factory(createAssert(copy), (name, fn) => bucket.push({ name, fn }), logs);
   } catch (error) {
-    return { error: `Ошибка при запуске: ${error.message}`, results: [] };
+    return { error: copy.startup(error.message), results: [] };
   }
 
   const results = [];
@@ -74,7 +76,7 @@ export async function runProgram({ prelude = "", tests = [], userCode = "" }) {
       await Promise.race([
         Promise.resolve().then(() => test.fn()),
         new Promise((_, reject) => {
-          setTimeout(() => reject(new Error("Превышено время теста (5 с)")), 5000);
+          setTimeout(() => reject(new Error(copy.timeout)), 5000);
         }),
       ]);
       results.push({
@@ -88,7 +90,7 @@ export async function runProgram({ prelude = "", tests = [], userCode = "" }) {
         name: test.name,
         ok: false,
         ms: Math.round(performance.now() - started),
-        error: formatError(error),
+        error: formatError(error, copy),
         logs: logs.map(formatLog),
       });
     }

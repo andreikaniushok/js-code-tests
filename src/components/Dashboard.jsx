@@ -1,4 +1,6 @@
 import { firstOpenTask, levelName } from "../skills.js";
+import { useI18n } from "../i18n/LocaleContext.jsx";
+import { sectionCopy } from "../i18n/messages.js";
 
 function Ring({ value }) {
   const radius = 52;
@@ -20,28 +22,28 @@ function Ring({ value }) {
 }
 
 export function Dashboard({ summary, onOpenTask, onRunAll, onResetAll, batch, continueTarget }) {
+  const { locale, t } = useI18n();
   const ratio = summary.total ? summary.mastered / summary.total : 0;
 
   return (
     <div className="dashboard">
       <header className="hero">
         <div>
-          <p className="eyebrow">Тренировка</p>
-          <h1>Навыки, которые видно</h1>
+          <p className="eyebrow">{t("dash.eyebrow")}</p>
+          <h1>{t("dash.title")}</h1>
           <p className="lede">
-            {summary.total} задач в {summary.sections.length} разделах. Пишите решение в редакторе с подсказками,
-            запускайте проверки и отмечайте то, что уже получается.
+            {t("dash.lede", { total: summary.total, sections: summary.sections.length })}
           </p>
           <div className="hero-actions">
             <button type="button" className="btn primary" onClick={() => onOpenTask(continueTarget.sectionId, continueTarget.taskName)}>
-              {continueTarget.continued ? "Продолжить" : "Начать"}
+              {continueTarget.continued ? t("dash.continue") : t("dash.start")}
             </button>
             <button type="button" className="btn ghost" onClick={onRunAll} disabled={Boolean(batch)}>
-              {batch ? `${batch.label} · ${batch.done}/${batch.total}` : `Проверить задачи с тестами (${summary.tested})`}
+              {batch ? `${batch.label} · ${batch.done}/${batch.total}` : t("dash.runAll", { count: summary.tested })}
             </button>
             {batch ? (
               <button type="button" className="btn ghost" onClick={batch.cancel}>
-                Остановить
+                {t("dash.stop")}
               </button>
             ) : null}
           </div>
@@ -51,7 +53,7 @@ export function Dashboard({ summary, onOpenTask, onRunAll, onResetAll, batch, co
           <div>
             <strong>{Math.round(ratio * 100)}%</strong>
             <span>
-              {summary.mastered} из {summary.total}
+              {t("dash.score", { mastered: summary.mastered, total: summary.total })}
             </span>
           </div>
         </div>
@@ -59,18 +61,18 @@ export function Dashboard({ summary, onOpenTask, onRunAll, onResetAll, batch, co
 
       <dl className="stat-row">
         <div>
-          <dt>Зачтено тестами</dt>
+          <dt>{t("stat.verified")}</dt>
           <dd>{summary.verified}</dd>
         </div>
         <div>
-          <dt>Отмечено вручную</dt>
+          <dt>{t("stat.manual")}</dt>
           <dd>{summary.manual}</dd>
         </div>
         <div>
-          <dt>Задач с автотестами</dt>
+          <dt>{t("stat.tested")}</dt>
           <dd>
             {summary.tested}
-            <small>из {summary.total}</small>
+            <small>{t("stat.of", { total: summary.total })}</small>
           </dd>
         </div>
       </dl>
@@ -79,14 +81,15 @@ export function Dashboard({ summary, onOpenTask, onRunAll, onResetAll, batch, co
         {summary.sections.map((section) => {
           const sectionRatio = section.total ? section.mastered / section.total : 0;
           const next = firstOpenTask(section);
+          const copy = sectionCopy(locale, section.id);
           return (
             <button key={section.id} type="button" className="skill-card" onClick={() => onOpenTask(section.id, next.name)}>
               <div className="skill-card-top">
                 <span className="idx">{section.index}</span>
-                <span className="level">{levelName(sectionRatio)}</span>
+                <span className="level">{t(`level.${levelName(sectionRatio)}`)}</span>
               </div>
-              <h2>{section.title}</h2>
-              <p>{section.blurb}</p>
+              <h2>{copy.title}</h2>
+              <p>{copy.blurb}</p>
               <div className="mini-bar" aria-hidden="true">
                 <span style={{ width: `${Math.round(sectionRatio * 100)}%` }} />
               </div>
@@ -94,7 +97,11 @@ export function Dashboard({ summary, onOpenTask, onRunAll, onResetAll, batch, co
                 <span>
                   {section.mastered}/{section.total}
                 </span>
-                <span>{section.tested ? `${section.verified}/${section.tested} тестами` : "без автотестов"}</span>
+                <span>
+                  {section.tested
+                    ? t("section.byTests", { verified: section.verified, tested: section.tested })
+                    : t("section.noTests")}
+                </span>
               </footer>
             </button>
           );
@@ -103,7 +110,7 @@ export function Dashboard({ summary, onOpenTask, onRunAll, onResetAll, batch, co
 
       <footer className="dash-foot">
         <button type="button" className="text-button" onClick={onResetAll}>
-          Сбросить локальный прогресс
+          {t("dash.reset")}
         </button>
       </footer>
     </div>

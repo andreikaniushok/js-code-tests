@@ -85,39 +85,46 @@ function deepEqual(left, right, seen = new Map()) {
   return true;
 }
 
-export function createAssert() {
+export function createAssert(copy) {
+  const text = copy || {
+    expected: (expected, actual) => `ожидалось ${expected}, получено ${actual}`,
+    notEqual: (actual) => `значения не должны совпадать: ${actual}`,
+    expectedTruthy: (actual) => `ожидалось истинное значение, получено ${actual}`,
+    messageMismatch: (message, expected) => `сообщение ${message} не совпало с ${expected}`,
+    expectedThrow: "ожидалось исключение",
+  };
   return {
     equal(actual, expected, message) {
       if (!Object.is(actual, expected)) {
-        throw assertionError(message || `ожидалось ${preview(expected)}, получено ${preview(actual)}`);
+        throw assertionError(message || text.expected(preview(expected), preview(actual)));
       }
     },
     notEqual(actual, expected, message) {
       if (Object.is(actual, expected)) {
-        throw assertionError(message || `значения не должны совпадать: ${preview(actual)}`);
+        throw assertionError(message || text.notEqual(preview(actual)));
       }
     },
     deepEqual(actual, expected, message) {
       if (!deepEqual(actual, expected)) {
-        throw assertionError(message || `ожидалось ${preview(expected)}, получено ${preview(actual)}`);
+        throw assertionError(message || text.expected(preview(expected), preview(actual)));
       }
     },
     ok(value, message) {
-      if (!value) throw assertionError(message || `ожидалось истинное значение, получено ${preview(value)}`);
+      if (!value) throw assertionError(message || text.expectedTruthy(preview(value)));
     },
     async rejects(block, expected) {
       try {
         await block();
       } catch (error) {
         if (expected instanceof RegExp) {
-          const text = `${error && error.message ? error.message : ""} ${error}`;
-          if (!expected.test(text)) {
-            throw assertionError(`сообщение ${preview(error && error.message)} не совпало с ${expected}`);
+          const message = `${error && error.message ? error.message : ""} ${error}`;
+          if (!expected.test(message)) {
+            throw assertionError(text.messageMismatch(preview(error && error.message), expected));
           }
         }
         return;
       }
-      throw assertionError("ожидалось исключение");
+      throw assertionError(text.expectedThrow);
     },
   };
 }

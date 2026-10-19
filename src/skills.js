@@ -1,14 +1,33 @@
 import { hashCode } from "./storage.js";
+import { localizeCodeDocs, localizedStarter, stripDocDescriptions } from "./i18n/taskText.js";
 
-export function taskCode(task, state) {
-  return state.code[task.id] ?? task.starter;
+export function codeFingerprint(code) {
+  return hashCode(stripDocDescriptions(code));
 }
 
-export function getStatus(task, state) {
-  const code = taskCode(task, state);
-  const dirty = code !== task.starter;
+export function isStarterCode(task, code) {
+  return stripDocDescriptions(code) === stripDocDescriptions(task.starter);
+}
+
+export function taskCode(task, state, locale = "ru") {
+  const saved = state.code[task.id];
+  if (!saved || isStarterCode(task, saved)) return localizedStarter(task, locale);
+  return localizeCodeDocs(saved, task, locale);
+}
+
+export function resultMatchesCode(task, state, locale, result) {
+  if (!result) return false;
+  const saved = state.code[task.id] ?? task.starter;
+  const code = taskCode(task, state, locale);
+  const fingerprint = codeFingerprint(code);
+  return result.hash === fingerprint || result.hash === hashCode(saved) || result.hash === hashCode(code);
+}
+
+export function getStatus(task, state, locale = "ru") {
+  const code = taskCode(task, state, locale);
+  const dirty = !isStarterCode(task, code);
   const result = state.results[task.id];
-  const same = Boolean(result && result.hash === hashCode(code));
+  const same = resultMatchesCode(task, state, locale, result);
   if (same && result.ok) return "verified";
   if (result?.ok) return "stale";
   if (same && result && !result.ok) return "failed";
@@ -22,21 +41,21 @@ export function isMastered(status) {
 }
 
 export function levelName(ratio) {
-  if (ratio >= 1) return "освоено";
-  if (ratio >= 0.7) return "уверенно";
-  if (ratio >= 0.35) return "в практике";
-  if (ratio > 0) return "начато";
-  return "не начато";
+  if (ratio >= 1) return "mastered";
+  if (ratio >= 0.7) return "confident";
+  if (ratio >= 0.35) return "practicing";
+  if (ratio > 0) return "started";
+  return "untouched";
 }
 
-export function summarize(sections, state) {
+export function summarize(sections, state, locale = "ru") {
   const decorated = sections.map((section) => {
     let mastered = 0;
     let verified = 0;
     let manual = 0;
     let tested = 0;
     const tasks = section.tasks.map((task) => {
-      const status = getStatus(task, state);
+      const status = getStatus(task, state, locale);
       if (task.tests.length) tested += 1;
       if (status === "verified" || status === "stale") verified += 1;
       if (status === "manual") manual += 1;

@@ -1,15 +1,9 @@
 import { useState } from "react";
 import { CodeEditor } from "./CodeEditor.jsx";
 import { TestPanel } from "./TestPanel.jsx";
-
-const STATUS_LABEL = {
-  verified: "тесты пройдены",
-  stale: "правки после зачёта",
-  failed: "тесты не прошли",
-  manual: "отмечено вручную",
-  draft: "в работе",
-  new: "не начато",
-};
+import { useI18n } from "../i18n/LocaleContext.jsx";
+import { sectionCopy } from "../i18n/messages.js";
+import { taskText } from "../i18n/taskText.js";
 
 export function Workspace({
   section,
@@ -28,18 +22,21 @@ export function Workspace({
   onNext,
   position,
 }) {
+  const { locale, t } = useI18n();
   const [confirmReset, setConfirmReset] = useState(false);
+  const copy = sectionCopy(locale, section.id);
+  const text = taskText(task, locale);
 
   return (
     <div className="workspace">
       <header className="work-head">
         <div>
           <p className="eyebrow">
-            {section.index} · {section.title}
+            {section.index} · {copy.title}
           </p>
           <div className="title-row">
             <h1>{task.name}</h1>
-            <span className={`status-chip ${status}`}>{STATUS_LABEL[status]}</span>
+            <span className={`status-chip ${status}`}>{t(`status.${status}`)}</span>
           </div>
           <p className="signature">
             {task.signature}
@@ -48,30 +45,30 @@ export function Workspace({
         </div>
         <div className="pager">
           <button type="button" className="btn ghost" onClick={onPrev} disabled={!onPrev}>
-            Назад
+            {t("pager.prev")}
           </button>
           <span>
             {position.index}/{position.total}
           </span>
           <button type="button" className="btn ghost" onClick={onNext} disabled={!onNext}>
-            Дальше
+            {t("pager.next")}
           </button>
         </div>
       </header>
 
       <section className="brief">
-        <p>{task.summary}</p>
+        <p>{text.summary}</p>
         <dl>
-          {task.input ? (
+          {text.input ? (
             <div>
-              <dt>Вход</dt>
-              <dd>{task.input}</dd>
+              <dt>{t("field.input")}</dt>
+              <dd>{text.input}</dd>
             </div>
           ) : null}
-          {task.output ? (
+          {text.output ? (
             <div>
-              <dt>Выход</dt>
-              <dd>{task.output}</dd>
+              <dt>{t("field.output")}</dt>
+              <dd>{text.output}</dd>
             </div>
           ) : null}
         </dl>
@@ -92,7 +89,7 @@ export function Workspace({
           <div className="editor-tools">
             {confirmReset ? (
               <>
-                <span>Вернуть пустой каркас функции?</span>
+                <span>{t("reset.ask")}</span>
                 <button
                   type="button"
                   className="btn danger"
@@ -101,15 +98,15 @@ export function Workspace({
                     onReset();
                   }}
                 >
-                  Сбросить код
+                  {t("reset.confirm")}
                 </button>
                 <button type="button" className="btn ghost" onClick={() => setConfirmReset(false)}>
-                  Отмена
+                  {t("reset.cancel")}
                 </button>
               </>
             ) : (
               <button type="button" className="text-button" onClick={() => setConfirmReset(true)}>
-                Сбросить код задачи
+                {t("reset.code")}
               </button>
             )}
           </div>

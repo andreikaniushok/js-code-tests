@@ -69,22 +69,65 @@ monaco.editor.defineTheme("polygon", {
 });
 
 const SNIPPETS = [
-  ["for", "цикл for", "for (let ${1:i} = 0; ${1:i} < ${2:items}.length; ${1:i}++) {\n\t$0\n}"],
-  ["forof", "цикл for...of", "for (const ${1:item} of ${2:items}) {\n\t$0\n}"],
-  ["forin", "цикл for...in", "for (const ${1:key} in ${2:object}) {\n\t$0\n}"],
-  ["if", "условие", "if (${1:condition}) {\n\t$0\n}"],
-  ["ife", "if / else", "if (${1:condition}) {\n\t$2\n} else {\n\t$0\n}"],
-  ["while", "цикл while", "while (${1:condition}) {\n\t$0\n}"],
-  ["map", "Array.map", "${1:items}.map((${2:item}) => {\n\treturn $0;\n})"],
-  ["filter", "Array.filter", "${1:items}.filter((${2:item}) => $0)"],
-  ["reduce", "Array.reduce", "${1:items}.reduce((${2:acc}, ${3:item}) => {\n\treturn ${2:acc};\n}, ${4:0})"],
-  ["fn", "function", "function ${1:name}(${2:args}) {\n\t$0\n}"],
-  ["af", "стрелочная функция", "(${1:args}) => {\n\t$0\n}"],
-  ["try", "try / catch", "try {\n\t$1\n} catch (${2:error}) {\n\t$0\n}"],
-  ["prom", "new Promise", "new Promise((resolve, reject) => {\n\t$0\n})"],
-  ["timeout", "setTimeout", "setTimeout(() => {\n\t$0\n}, ${1:0})"],
-  ["cl", "console.log", "console.log($0)"],
+  ["for", "for (let ${1:i} = 0; ${1:i} < ${2:items}.length; ${1:i}++) {\n\t$0\n}"],
+  ["forof", "for (const ${1:item} of ${2:items}) {\n\t$0\n}"],
+  ["forin", "for (const ${1:key} in ${2:object}) {\n\t$0\n}"],
+  ["if", "if (${1:condition}) {\n\t$0\n}"],
+  ["ife", "if (${1:condition}) {\n\t$2\n} else {\n\t$0\n}"],
+  ["while", "while (${1:condition}) {\n\t$0\n}"],
+  ["map", "${1:items}.map((${2:item}) => {\n\treturn $0;\n})"],
+  ["filter", "${1:items}.filter((${2:item}) => $0)"],
+  ["reduce", "${1:items}.reduce((${2:acc}, ${3:item}) => {\n\treturn ${2:acc};\n}, ${4:0})"],
+  ["fn", "function ${1:name}(${2:args}) {\n\t$0\n}"],
+  ["af", "(${1:args}) => {\n\t$0\n}"],
+  ["try", "try {\n\t$1\n} catch (${2:error}) {\n\t$0\n}"],
+  ["prom", "new Promise((resolve, reject) => {\n\t$0\n})"],
+  ["timeout", "setTimeout(() => {\n\t$0\n}, ${1:0})"],
+  ["cl", "console.log($0)"],
 ];
+
+const SNIPPET_DETAIL = {
+  ru: {
+    for: "цикл for",
+    forof: "цикл for...of",
+    forin: "цикл for...in",
+    if: "условие",
+    ife: "if / else",
+    while: "цикл while",
+    map: "Array.map",
+    filter: "Array.filter",
+    reduce: "Array.reduce",
+    fn: "function",
+    af: "стрелочная функция",
+    try: "try / catch",
+    prom: "new Promise",
+    timeout: "setTimeout",
+    cl: "console.log",
+  },
+  en: {
+    for: "for loop",
+    forof: "for...of loop",
+    forin: "for...in loop",
+    if: "condition",
+    ife: "if / else",
+    while: "while loop",
+    map: "Array.map",
+    filter: "Array.filter",
+    reduce: "Array.reduce",
+    fn: "function",
+    af: "arrow function",
+    try: "try / catch",
+    prom: "new Promise",
+    timeout: "setTimeout",
+    cl: "console.log",
+  },
+};
+
+let snippetLocale = "ru";
+
+export function setSnippetLocale(locale) {
+  snippetLocale = locale === "en" ? "en" : "ru";
+}
 
 monaco.languages.registerCompletionItemProvider("javascript", {
   provideCompletionItems(model, position, context) {
@@ -96,10 +139,10 @@ monaco.languages.registerCompletionItemProvider("javascript", {
     }
     const range = new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn);
     return {
-      suggestions: SNIPPETS.map(([label, detail, insertText]) => ({
+      suggestions: SNIPPETS.map(([label, insertText]) => ({
         label,
         kind: monaco.languages.CompletionItemKind.Snippet,
-        detail,
+        detail: SNIPPET_DETAIL[snippetLocale][label],
         insertText,
         insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
         range,
