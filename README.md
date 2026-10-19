@@ -1,22 +1,40 @@
-## What this is
+# Polygon
 
-A set of **JS interview prep tasks** in this format:
+JavaScript interview trainer: 310 tasks in 12 sections, Monaco editor, automated tests, and progress saved in the browser. UI and task text in English and Russian.
 
-- `tasks/<pack>/solution.js` — write your solutions here
-- `tasks/<pack>/tests.test.js` — automated checks via built-in `node --test`
-- task statements live next to functions in `tasks/<pack>/solution.js`
+## Setup
 
-No dependencies: works on **Node.js 18+**.
-
-## How to run tests
-
-Run all tests (checks all tasks):
+Node.js 18+.
 
 ```bash
-cd /Users/mak/Desktop/js-code-tests
-npm test
+npm install
+npm run dev
 ```
 
-Until you implement solutions, tests will fail — that’s expected.
+Open http://localhost:5173/
 
+## Scripts
 
+```bash
+npm run dev       # local app
+npm run build     # production build
+npm run preview   # preview build
+npm test          # run task tests (node:test)
+npm run test:app  # verify the app catalog
+```
+
+`npm test` fails while solutions are still stubs — that is expected.
+
+## Tasks
+
+```
+tasks/<section>/
+  solution.js     # JSDoc statement + your code
+  tests.test.js   # automated checks
+```
+
+Solve in the app or edit `solution.js` directly.
+
+## License
+
+MIT — see [LICENSE](LICENSE).
