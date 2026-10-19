@@ -57,7 +57,22 @@ export function Workspace({
       </header>
 
       <section className="brief">
-        <p>{text.summary}</p>
+        <p className="brief-label">{t("field.goal")}</p>
+        <p className="brief-summary">{text.summary}</p>
+        {text.examples.length ? (
+          <div className="brief-examples">
+            <p className="brief-label">{t("field.examples")}</p>
+            <ul>
+              {text.examples.map((item) => (
+                <li key={`${item.call}:${item.expected}`}>
+                  <code>{item.call}</code>
+                  <span aria-hidden="true">→</span>
+                  <code>{item.expected}</code>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <dl>
           {text.input ? (
             <div>

@@ -302,15 +302,52 @@ main { min-width: 0; min-height: 0; overflow: auto; }
 .pager span { font-family: var(--mono); color: var(--faint); font-size: 12px; }
 .brief {
   margin: 12px 18px 0;
-  padding: 12px 14px;
+  padding: 14px 16px;
   border: 1px solid var(--line);
   border-radius: 14px;
   background: #141a16;
-  max-height: 148px;
+  max-height: min(42vh, 320px);
   overflow: auto;
+  display: grid;
+  gap: 10px;
 }
-.brief dl { display: grid; gap: 6px; margin-top: 8px; }
-.brief div { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 8px; }
+.brief-label {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.brief-summary {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.5;
+  max-width: 72ch;
+}
+.brief-examples ul {
+  display: grid;
+  gap: 6px;
+  margin-top: 6px;
+}
+.brief-examples li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+.brief-examples code {
+  padding: 3px 7px;
+  border-radius: 8px;
+  background: var(--sunken);
+  color: var(--mint);
+}
+.brief-examples span {
+  color: var(--faint);
+}
+.brief dl { display: grid; gap: 6px; }
+.brief div { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: 8px; }
 .brief dt { color: var(--faint); font-family: var(--mono); font-size: 12px; }
 .brief dd { color: var(--muted); }
 .work-main {

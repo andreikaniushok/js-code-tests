@@ -6,6 +6,7 @@ import { assembleSection } from "../src/assemble.js";
 import { parseTests } from "../src/parse.js";
 import { runProgram } from "../src/runner/runProgram.js";
 import { SUMMARIES_RU } from "../src/i18n/summaries.ru.js";
+import { SUMMARIES_EN } from "../src/i18n/summaries.en.js";
 import { localizedStarter, taskText } from "../src/i18n/taskText.js";
 import { MESSAGES } from "../src/i18n/messages.js";
 
@@ -38,14 +39,25 @@ for (const section of catalog) {
     names.add(task.name);
     if (!task.summary) fail(`${task.id}: пустое условие`);
     if (!SUMMARIES_RU[task.id]) fail(`${task.id}: нет русского условия`);
+    if (!SUMMARIES_EN[task.id]) fail(`${task.id}: нет английского условия`);
     const russian = taskText(task, "ru");
+    const english = taskText(task, "en");
     if (!russian.summary || !russian.input || !russian.output) fail(`${task.id}: неполный русский текст`);
-    if (taskText(task, "en").summary !== task.summary) fail(`${task.id}: английское условие изменилось`);
+    if (!english.summary || english.summary !== SUMMARIES_EN[task.id]) fail(`${task.id}: английское условие не из словаря`);
     const ruStarter = localizedStarter(task, "ru");
     if (!ruStarter.includes("Задача:") || !ruStarter.includes(SUMMARIES_RU[task.id])) {
       fail(`${task.id}: русский JSDoc в каркасе не собран`);
     }
-    if (localizedStarter(task, "en") !== task.starter) fail(`${task.id}: английский каркас изменился`);
+    const enStarter = localizedStarter(task, "en");
+    if (!enStarter.includes("Task:") || !enStarter.includes(SUMMARIES_EN[task.id])) {
+      fail(`${task.id}: английский JSDoc в каркасе не собран`);
+    }
+    if (task.examples?.length) {
+      const sample = task.examples[0];
+      if (!enStarter.includes(sample.call) || !ruStarter.includes(sample.call)) {
+        fail(`${task.id}: пример не попал в каркас`);
+      }
+    }
     try {
       new Function(task.starter);
     } catch (error) {
