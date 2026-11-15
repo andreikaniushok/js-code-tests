@@ -4,6 +4,8 @@ JavaScript interview trainer: 350 tasks in 13 sections (including a basics warm-
 
 **Live app:** [https://js-code-tests.vercel.app/](https://js-code-tests.vercel.app/)
 
+**Live app:** [https://js-code-tests.vercel.app/](https://js-code-tests.vercel.app/)
+
 ## Setup
 
 Node.js 18+.
