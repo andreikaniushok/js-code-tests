@@ -30,7 +30,7 @@ const catalog = SECTIONS.map((section) => {
 });
 
 const total = catalog.reduce((sum, section) => sum + section.tasks.length, 0);
-if (total !== 310) fail(`ожидалось 310 задач, получено ${total}`);
+if (total !== 350) fail(`ожидалось 350 задач, получено ${total}`);
 
 for (const section of catalog) {
   const names = new Set();
@@ -247,5 +247,5 @@ if (failures.length) {
 }
 
 const tested = catalog.reduce((sum, section) => sum + section.tasks.filter((item) => item.tests.length).length, 0);
-if (tested !== 310) fail(`ожидалось 310 задач с тестами, получено ${tested}`);
+if (tested !== 350) fail(`ожидалось 350 задач с тестами, получено ${tested}`);
 console.log(`ok: ${total} задач, с тестами ${tested}`);

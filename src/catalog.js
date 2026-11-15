@@ -1,5 +1,7 @@
 import { assembleSection } from "./assemble.js";
 import { SECTIONS } from "./sections.js";
+import basicsSolution from "../tasks/00. basics/solution.js?raw";
+import basicsTests from "../tasks/00. basics/tests.test.js?raw";
 import logicSolution from "../tasks/01. logic/solution.js?raw";
 import logicTests from "../tasks/01. logic/tests.test.js?raw";
 import stringsSolution from "../tasks/02. strings/solution.js?raw";
@@ -26,6 +28,7 @@ import asyncSolution from "../tasks/12. async/solution.js?raw";
 import asyncTests from "../tasks/12. async/tests.test.js?raw";
 
 const SOURCES = {
+  basics: [basicsSolution, basicsTests],
   logic: [logicSolution, logicTests],
   strings: [stringsSolution, stringsTests],
   numbers: [numbersSolution, numbersTests],

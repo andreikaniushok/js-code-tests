@@ -1,6 +1,8 @@
 # Polygon
 
-JavaScript interview trainer: 310 tasks in 12 sections, Monaco editor, automated tests, and progress saved in the browser. UI and task text in English and Russian.
+JavaScript interview trainer: 350 tasks in 13 sections (including a basics warm-up), Monaco editor, automated tests, and progress saved in the browser. UI and task text in English and Russian.
+
+**Live app:** [https://js-code-tests.vercel.app/](https://js-code-tests.vercel.app/)
 
 ## Setup
 
