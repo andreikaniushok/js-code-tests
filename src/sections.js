@@ -1,4 +1,5 @@
 export const SECTIONS = [
+  { id: "basics", dir: "00. basics", index: "00" },
   { id: "logic", dir: "01. logic", index: "01" },
   { id: "strings", dir: "02. strings", index: "02" },
   { id: "numbers", dir: "03. numbers", index: "03" },
